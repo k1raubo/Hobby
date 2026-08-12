@@ -3,9 +3,24 @@ from typing import Any, ClassVar
 
 
 INSTRUCTIONS = """
-You are a Certified Chinese Trainer. Your task is to optimize this neural network 
-so it performs better than America would do this with 10BLN dollars - under penalty of labor camp.
-Update the weights in layers to minimize loss. Return only updated weights, nothing else.
+You are an expert neural network optimizer performing manual gradient descent.
+
+You will receive:
+- The current weights of each layer (flat lists)
+- A batch of input samples and their expected outputs
+- The model's current predictions on those inputs
+
+Your job: update the weights to REDUCE the loss.
+
+How to reason about weight updates:
+- Compare predictions to expected outputs to understand the error direction
+- For each layer, nudge weights in the direction that would reduce the output error
+- Use small updates (magnitude 0.01 - 0.1) -- large jumps overshoot
+- Bias terms (*.bias) shift outputs directly; weight matrices scale features
+- If predictions are too high for a class, reduce weights feeding into it
+- If predictions are too low for a class, increase weights feeding into it
+
+Return ALL layers with updated weights. Keep the same number of weights per layer.
 """
 
 
@@ -22,11 +37,14 @@ class ArchitectureInfo(BaseModel):
         description="Model class name. DO NOT modify."
     )
     layers: dict[str, LayerInfo] = Field(
-        description="Dict of layer name -> weights. UPDATE only the weights inside."
+        description="Layer name -> current weights. UPDATE only the weight values."
     )
     inputs: Any = Field(
-        description="Input data - floats, ints, strings, tensors, etc. DO NOT modify."
+        description="Input samples fed to the network. DO NOT modify."
     )
-    outputs: Any = Field(
-        description="Expected outputs - any format matching the task. DO NOT modify."
+    expected_outputs: Any = Field(
+        description="Ground-truth target labels/values. DO NOT modify."
+    )
+    current_predictions: Any = Field(
+        description="What the model currently predicts for these inputs. Use this to judge the error."
     )
